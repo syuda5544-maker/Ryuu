@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Kage no Senshi - Anime Action Survival Game">
+<title>Kage no Senshi ⚔️</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #080812;
+    font-family: Arial, Helvetica, sans-serif;
+    color: white;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#gameWrapper {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 50% 20%, #30204f 0%, #0b0b18 45%, #030307 100%);
+}
+
+canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+#hud {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    z-index: 5;
+    min-width: 230px;
+    user-select: none;
+}
+
+.hud-title {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-shadow: 0 0 12px #a855f7;
+}
+
+.bar-container {
+    width: 230px;
+    height: 17px;
+    margin-bottom: 6px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: rgba(0,0,0,.55);
+    border: 1px solid rgba(255,255,255,.2);
+}
+
+.bar {
+    height: 100%;
+    width: 100%;
+    transition: width .15s linear;
+}
+
+#hpBar {
+    background: linear-gradient(90deg, #ef233c, #ff758f);
+}
+
+#xpBar {
+    width: 0%;
+    background: linear-gradient(90deg, #6c63ff, #d946ef);
+}
+
+.hud-text {
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #ddd;
+}
+
+#topRight {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 5;
+    text-align: right;
+    user-select: none;
+}
+
+.stat {
+    font-weight: bold;
+    font-size: 17px;
+    margin-bottom: 6px;
+    text-shadow: 0 0 8px rgba(255,255,255,.4);
+}
+
+#menu,
+#gameOver,
+#pauseScreen,
+#levelUp {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(3,3,10,.72);
+    backdrop-filter: blur(7px);
+}
+
+.panel {
+    width: min(560px, 90%);
+    padding: 40px;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 24px;
+    text-align: center;
+    background: linear-gradient(
+        145deg,
+        rgba(45,25,75,.94),
+        rgba(10,10,25,.96)
+    );
+    box-shadow:
+        0 0 40px rgba(168,85,247,.2),
+        inset 0 0 30px rgba(255,255,255,.02);
+}
+
+.logo {
+    font-size: clamp(38px, 7vw, 72px);
+    font-weight: 900;
+    letter-spacing: 5px;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #fff, #d946ef, #7c3aed);
+    -webkit-background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 30px rgba(217,70,239,.25);
+}
+
+.subtitle {
+    color: #bbb;
+    margin-bottom: 30px;
+    font-size: 15px;
+}
+
+button {
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 14px 28px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #7c3aed, #db2777);
+    box-shadow: 0 8px 25px rgba(124,58,237,.3);
+    transition: .2s;
+}
+
+button:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 12px 30px rgba(217,70,239,.4);
+}
+
+button:active {
+    transform: scale(.97);
+}
+
+.controls {
+    margin-top: 25px;
+    color: #aaa;
+    font-size: 13px;
+    line-height: 1.9;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.gameOverTitle {
+    font-size: 48px;
+    font-weight: 900;
+    color: #ff4d6d;
+    margin-bottom: 12px;
+}
+
+.finalScore {
+    font-size: 25px;
+    margin-bottom: 25px;
+}
+
+.levelTitle {
+    font-size: 40px;
+    font-weight: 900;
+    margin-bottom: 10px;
+    color: #d946ef;
+}
+
+.upgrades {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.upgrade {
+    padding: 18px 10px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    cursor: pointer;
+    transition: .2s;
+}
+
+.upgrade:hover {
+    background: rgba(217,70,239,.15);
+    transform: translateY(-3px);
+}
+
+.upgrade strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 7px;
+}
+
+.upgrade span {
+    font-size: 12px;
+    color: #aaa;
+}
+
+#mobileNotice {
+    display: none;
+}
+
+@media (max-width: 700px) {
+    #mobileNotice {
+        display: block;
+        position: absolute;
+        bottom: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 6;
+        font-size: 11px;
+        color: #aaa;
+    }
+
+    .upgrades {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="gameWrapper">
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="hud" class="hidden">
+    <div class="hud-title">⚔️ KAGE NO SENSHI</div>
+
+    <div class="hud-text">
+        HP
+    </div>
+    <div class="bar-container">
+        <div id="hpBar" class="bar"></div>
+    </div>
+
+    <div class="hud-text">
+        EXP
+    </div>
+    <div class="bar-container">
+        <div id="xpBar" class="bar"></div>
+    </div>
+
+    <div id="levelText" class="hud-text">
+        Level 1
+    </div>
+</div>
+
+<div id="topRight" class="hidden">
+    <div class="stat">⚔️ Score: <span id="score">0</span></div>
+    <div class="stat">☠️ Kills: <span id="kills">0</span></div>
+    <div class="stat">⏱️ Time: <span id="time">0</span>s</div>
+</div>
+
+<div id="menu">
+    <div class="panel">
+        <div class="logo">KAGE NO SENSHI</div>
+        <div class="subtitle">
+            「 Shadow of the Warrior 」
+        </div>
+
+        <button id="startButton">
+            ▶ MULAI PERMAINAN
+        </button>
+
+        <div class="controls">
+            <b>W A S D</b> / <b>ARROW</b> — Bergerak<br>
+            <b>SPACE</b> — Serang<br>
+            <b>P</b> — Pause
+        </div>
+    </div>
+</div>
+
+<div id="pauseScreen" class="hidden">
+    <div class="panel">
+        <div class="logo" style="font-size:45px;">PAUSED</div>
+        <p style="color:#aaa;margin-bottom:25px;">
+            Tekan P untuk melanjutkan
+        </p>
+        <button id="resumeButton">▶ LANJUT</button>
+    </div>
+</div>
+
+<div id="gameOver" class="hidden">
+    <div class="panel">
+        <div class="gameOverTitle">GAME OVER</div>
+
+        <div class="finalScore">
+            Score: <b id="finalScore">0</b>
+        </div>
+
+        <p style="color:#aaa;margin-bottom:25px;">
+            Kage no Senshi telah gugur...
+        </p>
+
+        <button id="restartButton">
+            ↻ MAIN LAGI
+        </button>
+    </div>
+</div>
+
+<div id="levelUp" class="hidden">
+    <div class="panel">
+        <div class="levelTitle">
+            LEVEL UP!
+        </div>
+
+        <p>
+            Pilih kemampuanmu.
+        </p>
+
+        <div class="upgrades">
+
+            <div class="upgrade" data-upgrade="damage">
+                <strong>⚔️ Shadow Blade</strong>
+                <span>Damage +25%</span>
+            </div>
+
+            <div class="upgrade" data-upgrade="speed">
+                <strong>💨 Flash Step</strong>
+                <span>Movement Speed +20%</span>
+            </div>
+
+            <div class="upgrade" data-upgrade="health">
+                <strong>❤️ Demon Heart</strong>
+                <span>Max HP +30%</span>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="mobileNotice">
+    Game ini dibuat untuk keyboard komputer.
+</div>
+
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   KAGE NO SENSHI
+   Pure JavaScript - No External Library
+   ========================================================= */
+
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const menu = document.getElementById("menu");
+const gameOverScreen = document.getElementById("gameOver");
+const pauseScreen = document.getElementById("pauseScreen");
+const levelUpScreen = document.getElementById("levelUp");
+
+const hud = document.getElementById("hud");
+const topRight = document.getElementById("topRight");
+
+const hpBar = document.getElementById("hpBar");
+const xpBar = document.getElementById("xpBar");
+
+const scoreEl = document.getElementById("score");
+const killsEl = document.getElementById("kills");
+const timeEl = document.getElementById("time");
+const levelEl = document.getElementById("levelText");
+const finalScoreEl = document.getElementById("finalScore");
+
+const startButton = document.getElementById("startButton");
+const restartButton = document.getElementById("restartButton");
+const resumeButton = document.getElementById("resumeButton");
+
+let width = 0;
+let height = 0;
+
+let gameRunning = false;
+let paused = false;
+let levelPaused = false;
+
+let lastTime = 0;
+let gameTime = 0;
+let spawnTimer = 0;
+let attackTimer = 0;
+let screenShake = 0;
+
+let score = 0;
+let kills = 0;
+
+let enemyId = 0;
+
+const keys = Object.create(null);
+const enemies = [];
+const particles = [];
+const floatingTexts = [];
+const slashEffects = [];
+const stars = [];
+
+/* =========================================================
+   AUDIO
+   ========================================================= */
+
+let audioContext = null;
+let musicTimer = null;
+let musicStep = 0;
+
+function initAudio() {
+    if (!audioContext) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+
+        if (AudioCtx) {
+            audioContext = new AudioCtx();
+        }
+    }
+
+    if (audioContext && audioContext.state === "suspended") {
+        audioContext.resume();
+    }
+}
+
+function sound(type) {
+    if (!audioContext) return;
+
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+
+    const now = audioContext.currentTime;
+
+    let frequency = 300;
+    let duration = 0.08;
+
+    if (type === "attack") {
+        frequency = 220;
+        duration = 0.12;
+        oscillator.type = "sawtooth";
+    }
+
+    if (type === "hit") {
+        frequency = 100;
+        duration = 0.08;
+        oscillator.type = "square";
+    }
+
+    if (type === "level") {
+        frequency = 520;
+        duration = 0.35;
+        oscillator.type = "sine";
+    }
+
+    if (type === "hurt") {
+        frequency = 80;
+        duration = 0.2;
+        oscillator.type = "sawtooth";
+    }
+
+    if (type === "death") {
+        frequency = 60;
+        duration = 0.5;
+        oscillator.type = "triangle";
+    }
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    oscillator.frequency.setValueAtTime(frequency, now);
+
+    if (type === "level") {
+        oscillator.frequency.exponentialRampToValueAtTime(
+            frequency * 1.8,
+            now + duration
+        );
+    }
+
+    oscillator.start(now);
+    oscillator.stop(now + duration + 0.02);
+}
+
+function startMusic() {
+    if (musicTimer || !audioContext) return;
+
+    const notes = [220, 277, 330, 277, 196, 247, 294, 247];
+
+    musicTimer = setInterval(() => {
+        if (!gameRunning || paused || levelPaused) return;
+
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        osc.type = "sine";
+        osc.frequency.value = notes[musicStep % notes.length];
+
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+
+        const now = audioContext.currentTime;
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.025, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+
+        osc.start(now);
+        osc.stop(now + 0.32);
+
+        musicStep++;
+    }, 420);
+}
+
+/* =========================================================
+   RESIZE
+   ========================================================= */
+
+function resizeCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    createStars();
+}
+
+window.addEventListener("resize", resizeCanvas);
+
+/* =========================================================
+   STARS
+   ========================================================= */
+
+function createStars() {
+    stars.length = 0;
+
+    const amount = Math.max(80, Math.floor((width * height) / 10000));
+
+    for (let i = 0; i < amount; i++) {
+        stars.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: Math.random() * 2 + 0.5,
+            alpha: Math.random() * 0.7 + 0.2,
+            speed: Math.random() * 20 + 5
+        });
+    }
+}
+
+/* =========================================================
+   PLAYER
+   ========================================================= */
+
+const player = {
+    x: 0,
+    y: 0,
+
+    radius: 25,
+
+    hp: 100,
+    maxHp: 100,
+
+    damage: 28,
+    speed: 300,
+
+    level: 1,
+    xp: 0,
+    xpNeeded: 100,
+
+    invincible: 0,
+
+    attackDuration: 0.16,
+    attackCooldown: 0.34,
+
+    facingX: 1,
+    facingY: 0,
+
+    color: "#c084fc"
+};
+
+function resetPlayer() {
+    player.x = width / 2;
+    player.y = height / 2;
+
+    player.hp = 100;
+    player.maxHp = 100;
+
+    player.damage = 28;
+    player.speed = 300;
+
+    player.level = 1;
+    player.xp = 0;
+    player.xpNeeded = 100;
+
+    player.invincible = 0;
+
+    player.facingX = 1;
+    player.facingY = 0;
+}
+
+/* =========================================================
+   INPUT
+   ========================================================= */
+
+window.addEventListener("keydown", (event) => {
+    keys[event.code] = true;
+
+    if (
+        [
+            "ArrowUp",
+            "ArrowDown",
+            "ArrowLeft",
+            "ArrowRight",
+            "Space"
+        ].includes(event.code)
+    ) {
+        event.preventDefault();
+    }
+
+    if (event.code === "KeyP") {
+        togglePause();
+    }
+
+    if (event.code === "Space") {
+        attack();
+    }
+});
+
+window.addEventListener("keyup", (event) => {
+    keys[event.code] = false;
+});
+
+/* =========================================================
+   START / PAUSE
+   ========================================================= */
+
+function startGame() {
+    initAudio();
+    startMusic();
+
+    gameRunning = true;
+    paused = false;
+    levelPaused = false;
+
+    gameTime = 0;
+    spawnTimer = 0;
+    attackTimer = 0;
+    score = 0;
+    kills = 0;
+    enemyId = 0;
+
+    enemies.length = 0;
+    particles.length = 0;
+    floatingTexts.length = 0;
+    slashEffects.length = 0;
+
+    resetPlayer();
+
+    menu.classList.add("hidden");
+    gameOverScreen.classList.add("hidden");
+    pauseScreen.classList.add("hidden");
+    levelUpScreen.classList.add("hidden");
+
+    hud.classList.remove("hidden");
+    topRight.classList.remove("hidden");
+
+    updateUI();
+
+    lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
+}
+
+function togglePause() {
+    if (!gameRunning || levelPaused) return;
+
+    paused = !paused;
+
+    if (paused) {
+        pauseScreen.classList.remove("hidden");
+    } else {
+        pauseScreen.classList.add("hidden");
+        lastTime = performance.now();
+        requestAnimationFrame(gameLoop);
+    }
+}
+
+/* =========================================================
+   PLAYER MOVEMENT
+   ========================================================= */
+
+function updatePlayer(dt) {
+    let dx = 0;
+    let dy = 0;
+
+    if (keys["KeyW"] || keys["ArrowUp"]) {
+        dy -= 1;
+    }
+
+    if (keys["KeyS"] || keys["ArrowDown"]) {
+        dy += 1;
+    }
+
+    if (keys["KeyA"] || keys["ArrowLeft"]) {
+        dx -= 1;
+    }
+
+    if (keys["KeyD"] || keys["ArrowRight"]) {
+        dx += 1;
+    }
+
+    if (dx !== 0 || dy !== 0) {
+        const length = Math.hypot(dx, dy);
+
+        dx /= length;
+        dy /= length;
+
+        player.x += dx * player.speed * dt;
+        player.y += dy * player.speed * dt;
+
+        player.facingX = dx;
+        player.facingY = dy;
+    }
+
+    const margin = player.radius + 10;
+
+    player.x = Math.max(margin, Math.min(width - margin, player.x));
+    player.y = Math.max(margin, Math.min(height - margin, player.y));
+
+    if (player.invincible > 0) {
+        player.invincible -= dt;
+    }
+
+    if (attackTimer > 0) {
+        attackTimer -= dt;
+    }
+}
+
+/* =========================================================
+   ATTACK
+   ========================================================= */
+
+function attack() {
+    if (!gameRunning || paused || levelPaused) return;
+
+    if (attackTimer > 0) return;
+
+    attackTimer = player.attackCooldown;
+
+    sound("attack");
+
+    slashEffects.push({
+        x: player.x,
+        y: player.y,
+        angle: Math.atan2(player.facingY, player.facingX),
+        life: player.attackDuration,
+        maxLife: player.attackDuration
+    });
+
+    const range = 90;
+
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        const enemy = enemies[i];
+
+        const dx = enemy.x - player.x;
+        const dy = enemy.y - player.y;
+
+        const distance = Math.hypot(dx, dy);
+
+        if (distance <= range + enemy.radius) {
+            const dot =
+                (dx / Math.max(distance, 1)) * player.facingX +
+                (dy / Math.max(distance, 1)) * player.facingY;
+
+            if (dot > -0.25) {
+                damageEnemy(enemy);
+            }
+        }
+    }
+}
+
+function damageEnemy(enemy) {
+    enemy.hp -= player.damage;
+
+    sound("hit");
+
+    createHitParticles(enemy.x, enemy.y);
+
+    addFloatingText(
+        enemy.x,
+        enemy.y - enemy.radius - 10,
+        "-" + Math.round(player.damage)
+    );
+
+    if (enemy.hp <= 0) {
+        killEnemy(enemy);
+    }
+}
+
+function killEnemy(enemy) {
+    const index = enemies.indexOf(enemy);
+
+    if (index !== -1) {
+        enemies.splice(index, 1);
+    }
+
+    kills++;
+
+    score += enemy.score;
+
+    gainXP(enemy.xp);
+
+    createDeathParticles(enemy.x, enemy.y);
+
+    addFloatingText(
+        enemy.x,
+        enemy.y,
+        "+" + enemy.score
+    );
+}
+
+/* =========================================================
+   ENEMIES
+   ========================================================= */
+
+function spawnEnemy() {
+    const side = Math.floor(Math.random() * 4);
+
+    let x;
+    let y;
+
+    if (side === 0) {
+        x = -50;
+        y = Math.random() * height;
+    } else if (side === 1) {
+        x = width + 50;
+        y = Math.random() * height;
+    } else if (side === 2) {
+        x = Math.random() * width;
+        y = -50;
+    } else {
+        x = Math.random() * width;
+        y = height + 50;
+    }
+
+    const difficulty = Math.min(gameTime / 60, 3);
+
+    const baseHp = 45 + difficulty * 20;
+    const baseSpeed = 70 + difficulty * 12;
+
+    enemies.push({
+        id: enemyId++,
+        x,
+        y,
+        radius: 20 + Math.random() * 7,
+
+        hp: baseHp,
+        maxHp: baseHp,
+
+        speed: baseSpeed + Math.random() * 30,
+
+        damage: 8 + difficulty * 2,
+
+        xp: Math.round(20 + difficulty * 5),
+
+        score: Math.round(15 + difficulty * 5),
+
+        hitFlash: 0,
+
+        color: Math.random() > .5 ? "#ef4444" : "#9333ea"
+    });
+}
+
+function updateEnemies(dt) {
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        const enemy = enemies[i];
+
+        const dx = player.x - enemy.x;
+        const dy = player.y - enemy.y;
+
+        const distance = Math.hypot(dx, dy) || 1;
+
+        enemy.x += (dx / distance) * enemy.speed * dt;
+        enemy.y += (dy / distance) * enemy.speed * dt;
+
+        if (enemy.hitFlash > 0) {
+            enemy.hitFlash -= dt;
+        }
+
+        const collisionDistance =
+            enemy.radius + player.radius;
+
+        if (distance < collisionDistance) {
+            hurtPlayer(enemy);
+        }
+    }
+}
+
+function hurtPlayer(enemy) {
+    if (player.invincible > 0) return;
+
+    player.hp -= enemy.damage;
+    player.invincible = 0.7;
+
+    screenShake = 8;
+
+    sound("hurt");
+
+    createHitParticles(player.x, player.y);
+
+    addFloatingText(
+        player.x,
+       
